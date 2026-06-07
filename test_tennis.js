@@ -1,0 +1,21 @@
+const { chromium } = require('playwright');
+(async () => {
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage();
+  await page.setViewportSize({ width: 390, height: 844 });
+  const errors = [];
+  page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
+  await page.goto('http://127.0.0.1:5175/', { waitUntil: 'networkidle' });
+  const title = await page.title();
+  const h1 = await page.textContent('h1').catch(() => 'not found');
+  const hasPlayersSection = await page.locator('.section-title').first().textContent().catch(() => 'not found');
+  const hasAddPlayerBtn = await page.locator('button:has-text("+ Jogador")').count();
+  const hasAddCourtBtn = await page.locator('button:has-text("+ Quadra")').count();
+  console.log('Title:', title);
+  console.log('H1:', h1);
+  console.log('First section title:', hasPlayersSection);
+  console.log('Has + Jogador button:', hasAddPlayerBtn > 0);
+  console.log('Has + Quadra button:', hasAddCourtBtn > 0);
+  console.log('Console errors:', errors.length > 0 ? errors : 'none');
+  await browser.close();
+})();
