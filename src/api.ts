@@ -15,13 +15,13 @@ async function request(method: string, path: string, body?: unknown) {
   });
   if (res.status === 401) {
     authToken = null;
-    sessionStorage.removeItem('token');
+    localStorage.removeItem('token');
     window.location.reload();
     throw new Error('Unauthorized');
   }
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Request failed');
+    throw new Error(err.detail || 'Requisição falhou');
   }
   return res.json();
 }
@@ -35,6 +35,8 @@ export const api = {
   players: {
     list: () => request('GET', '/players'),
     create: (name: string, seed?: number, photo?: string) => request('POST', '/players', { name, seed, photo }),
+    update: (id: string, data: { name?: string; seed?: number; photo?: string }) =>
+      request('PATCH', `/players/${id}`, data),
     delete: (id: string) => request('DELETE', `/players/${id}`),
   },
   courts: {
@@ -42,7 +44,7 @@ export const api = {
     create: (name: string) => request('POST', '/courts', { name }),
     delete: (id: string) => request('DELETE', `/courts/${id}`),
     matches: (cid: string) => request('GET', `/courts/${cid}/matches`),
-    createMatch: (cid: string, data: any) => request('POST', `/courts/${cid}/matches`, data),
+    createMatch: (cid: string, data: Record<string, unknown>) => request('POST', `/courts/${cid}/matches`, data),
     deleteMatch: (cid: string, mid: string) => request('DELETE', `/courts/${cid}/matches/${mid}`),
   },
   matches: {
@@ -53,6 +55,12 @@ export const api = {
     listPhotos: (mid: string) => request('GET', `/matches/${mid}/photos`),
     addPhoto: (mid: string, photo: string, caption?: string) => request('POST', `/matches/${mid}/photos`, { match_id: mid, photo, caption }),
     deletePhoto: (mid: string, photoid: number) => request('DELETE', `/matches/${mid}/photos/${photoid}`),
+  },
+  users: {
+    list: () => request('GET', '/users'),
+    create: (username: string, password: string, name: string) =>
+      request('POST', '/users', { username, password, name }),
+    delete: (username: string) => request('DELETE', `/users/${username}`),
   },
 };
 
